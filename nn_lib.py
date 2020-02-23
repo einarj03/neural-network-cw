@@ -98,7 +98,7 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        
+
         self._cache_current = x
         return 1 / (1 + np.exp(-x))
 
@@ -110,7 +110,7 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        
+
         sig = self.forward(self._cache_current)
         return grad_z * sig * (1 - sig)
 
@@ -131,7 +131,7 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        
+
         self._cache_current = x
         return np.maximum(0, x)
 
@@ -143,7 +143,7 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        
+
         grad_z[self._cache_current <= 0] = 0
         grad_z[self._cache_current > 0] = 1
         return grad_z
@@ -215,7 +215,7 @@ class LinearLayer(Layer):
             grad_z {np.ndarray} -- Gradient array of shape (batch_size, n_out).
 
         Returns:
-            {np.ndarray} -- Array containing gradient with repect to layer
+            {np.ndarray} -- Array containing gradient with respect to layer
                 input, of shape (batch_size, n_in).
         """
         #######################################################################
@@ -282,7 +282,7 @@ class MultiLayerNetwork(object):
 
         Returns:
             {np.ndarray} -- Output array of shape (batch_size,
-                #_neurons_in_final_layer)
+                # _neurons_in_final_layer)
         """
         #######################################################################
         #                       ** START OF YOUR CODE **
@@ -302,10 +302,10 @@ class MultiLayerNetwork(object):
 
         Arguments:
             grad_z {np.ndarray} -- Gradient array of shape (1,
-                #_neurons_in_final_layer).
+                # _neurons_in_final_layer).
 
         Returns:
-            {np.ndarray} -- Array containing gradient with repect to layer
+            {np.ndarray} -- Array containing gradient with respect to layer
                 input, of shape (batch_size, input_dim).
         """
         #######################################################################
@@ -409,7 +409,12 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+
+        indices = np.arange(input_dataset.shape[0])
+        np.random.shuffle(indices)
+        input_dataset = input_dataset[indices]
+        target_dataset = target_dataset[indices]
+        return input_dataset, target_dataset
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -438,7 +443,38 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+
+        for epoch in range(self.nb_epoch):
+            # Shuffling
+            if (self.shuffle_flag):
+                input_dataset, target_dataset = \
+                    self.shuffle(input_dataset, target_dataset)
+            # Splitting (if it can't be split in evenly sized batches, the last
+            # batch has fewer elements)
+            if (self.batch_size < 1):
+                raise ValueError('Batch size must be greater than 0')
+            splits = np.arange(
+                self.batch_size, input_dataset.shape[0], self.batch_size)
+            input_dataset_split = np.split(input_dataset, splits)
+            target_dataset_split = np.split(target_dataset, splits)
+            # Iterating through batches
+            for index, (input_batch, target_batch) in enumerate(zip(input_dataset_split, target_dataset_split)):
+                # Calculate predictions
+                predictions = self.network.forward(input_batch)
+                # Evaluate loss
+                if (self.loss_fun == "mse"):
+                    loss_function = MSELossLayer()
+                    loss = loss_function.forward(predictions, target_batch)
+                elif (self.loss_fun == "cross_entropy"):
+                    loss_function = CrossEntropyLossLayer()
+                    loss = loss_function.forward(predictions, target_batch)
+                # Backpropagate loss
+                self.network.backward(loss_function.backward())
+                # Update weights
+                self.network.update_params(self.learning_rate)
+                # Print loss
+                print("[" + str(epoch + 1) + ", " +
+                      str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -457,7 +493,18 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        if (self.loss_fun not in ["mse", "cross_entropy"]):
+            raise ValueError(
+                'Loss function unknown. Please use mse or cross_entropy')
+        # Calculate predictions
+        predictions = self.network.forward(input_dataset)
+        # Evaluate loss
+        if (self.loss_fun == "mse"):
+            loss_function = MSELossLayer()
+            return loss_function.forward(predictions, target_dataset)
+        elif (self.loss_fun == "cross_entropy"):
+            loss_function = CrossEntropyLossLayer()
+            return loss_function.forward(predictions, target_dataset)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -542,7 +589,9 @@ class Preprocessor(object):
 
 
 def example_main():
+    '''
     # TESTING PREPROCESSOR
+
     data = np.loadtxt("iris.dat")
     prep = Preprocessor(data)
     print("Original Dataset")
@@ -557,7 +606,6 @@ def example_main():
     reverted_dataset = prep.revert(normalized_dataset)
     print("Original Dataset")
     print(reverted_dataset)
-
 
     # TESTING ACTIVATION FUNCTIONS
 
@@ -579,7 +627,25 @@ def example_main():
     backward_data = relu.backward(data)
     print(backward_data)
 
+
+    # TESTING TRAINER
+
+    # shuffle
+    trainer = Trainer(None, None, None, None, None, None)
+    a_i = np.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+    a_t = np.array([1, 2, 3, 4])
+    print("Original")
+    print(a_i)
+    print(a_t)
+    print()
+    a_i, a_t = trainer.shuffle(a_i, a_t)
+    print("Shuffled")
+    print(a_i)
+    print(a_t)
+    print()
+
     '''
+
     # ORIGINAL TEST FUNCTION (provided)
     input_dim = 4
     neurons = [16, 3]
@@ -603,7 +669,7 @@ def example_main():
 
     x_train_pre = prep_input.apply(x_train)
     x_val_pre = prep_input.apply(x_val)
-    
+
     trainer = Trainer(
         network=net,
         batch_size=8,
@@ -614,6 +680,7 @@ def example_main():
     )
 
     trainer.train(x_train_pre, y_train)
+
     print("Train loss = ", trainer.eval_loss(x_train_pre, y_train))
     print("Validation loss = ", trainer.eval_loss(x_val_pre, y_val))
 
@@ -621,7 +688,6 @@ def example_main():
     targets = y_val.argmax(axis=1).squeeze()
     accuracy = (preds == targets).mean()
     print("Validation accuracy: {}".format(accuracy))
-    '''
 
 
 if __name__ == "__main__":
