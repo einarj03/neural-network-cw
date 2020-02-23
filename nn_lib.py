@@ -98,7 +98,9 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        
+        self._cache_current = x
+        return 1 / (1 + np.exp(-x))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -108,7 +110,9 @@ class SigmoidLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        
+        sig = self.forward(self._cache_current)
+        return grad_z * sig * (1 - sig)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -127,7 +131,9 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        
+        self._cache_current = x
+        return np.maximum(0, x)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -137,7 +143,10 @@ class ReluLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        
+        grad_z[self._cache_current <= 0] = 0
+        grad_z[self._cache_current > 0] = 1
+        return grad_z
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -533,7 +542,45 @@ class Preprocessor(object):
 
 
 def example_main():
+    # TESTING PREPROCESSOR
+    data = np.loadtxt("iris.dat")
+    prep = Preprocessor(data)
+    print("Original Dataset")
+    print(data)
+
+    # Normalizing
+    normalized_dataset = prep.apply(data)
+    print("Normalized Dataset")
+    print(normalized_dataset)
+
+    # Reverting
+    reverted_dataset = prep.revert(normalized_dataset)
+    print("Original Dataset")
+    print(reverted_dataset)
+
+
+    # TESTING ACTIVATION FUNCTIONS
+
+    # Sigmoid
+    data = np.loadtxt("iris.dat")
+    print(data)
+    sig = SigmoidLayer()
+    processed_data = sig.forward(data)
+    print(processed_data)
+    backward_data = sig.backward(data)
+    print(backward_data)
+
+    # ReLu
+    data = np.loadtxt("iris.dat")
+    print(data)
+    relu = ReluLayer()
+    processed_data = relu.forward(data)
+    print(processed_data)
+    backward_data = relu.backward(data)
+    print(backward_data)
+
     '''
+    # ORIGINAL TEST FUNCTION (provided)
     input_dim = 4
     neurons = [16, 3]
     activations = ["relu", "identity"]
@@ -556,25 +603,7 @@ def example_main():
 
     x_train_pre = prep_input.apply(x_train)
     x_val_pre = prep_input.apply(x_val)
-    '''
-
-    # TESTING PREPROCESSOR
-    data = np.loadtxt("iris.dat")
-    prep = Preprocessor(data)
-    print("Original Dataset")
-    print(data)
     
-    # Normalizing
-    normalized_dataset = prep.apply(data)
-    print("Normalized Dataset")
-    print(normalized_dataset)
-
-    # Reverting
-    reverted_dataset = prep.revert(normalized_dataset)
-    print("Original Dataset")
-    print(reverted_dataset)
-
-    '''
     trainer = Trainer(
         network=net,
         batch_size=8,
