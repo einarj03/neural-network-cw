@@ -473,7 +473,9 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+
+        self.original_interval = np.array([np.amin(data), np.amax(data)])
+        self.norm_interval = np.array([0, 1])
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -492,7 +494,13 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        for row in range(data.shape[0]):
+            for col in range(data.shape[1]):
+                data[row][col] = self.norm_interval[0] + \
+                    (data[row][col] - self.original_interval[0]) * \
+                    (self.norm_interval[1] - self.norm_interval[0]) / \
+                    (self.original_interval[1] - self.original_interval[0])
+        return data
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -511,7 +519,13 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        for row in range(data.shape[0]):
+            for col in range(data.shape[1]):
+                data[row][col] = self.original_interval[0] + \
+                    (data[row][col] - self.norm_interval[0]) * \
+                    (self.original_interval[1] - self.original_interval[0]) / \
+                    (self.norm_interval[1] - self.norm_interval[0])
+        return data
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -519,6 +533,7 @@ class Preprocessor(object):
 
 
 def example_main():
+    '''
     input_dim = 4
     neurons = [16, 3]
     activations = ["relu", "identity"]
@@ -541,7 +556,25 @@ def example_main():
 
     x_train_pre = prep_input.apply(x_train)
     x_val_pre = prep_input.apply(x_val)
+    '''
 
+    # TESTING PREPROCESSOR
+    data = np.loadtxt("iris.dat")
+    prep = Preprocessor(data)
+    print("Original Dataset")
+    print(data)
+    
+    # Normalizing
+    normalized_dataset = prep.apply(data)
+    print("Normalized Dataset")
+    print(normalized_dataset)
+
+    # Reverting
+    reverted_dataset = prep.revert(normalized_dataset)
+    print("Original Dataset")
+    print(reverted_dataset)
+
+    '''
     trainer = Trainer(
         network=net,
         batch_size=8,
@@ -559,6 +592,7 @@ def example_main():
     targets = y_val.argmax(axis=1).squeeze()
     accuracy = (preds == targets).mean()
     print("Validation accuracy: {}".format(accuracy))
+    '''
 
 
 if __name__ == "__main__":
