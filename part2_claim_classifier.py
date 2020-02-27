@@ -62,7 +62,7 @@ class Net(nn.Module):
 #### QUESTION 2.1
 class ClaimClassifier():
 
-    def __init__(self, epoch=200, batchsize=4, learnrate=0.0001, neurons=9):
+    def __init__(self, epoch=100, batchsize=4, learnrate=0.0001, neurons=9):
         """
         Feel free to alter this as you wish, adding instance variables as
         necessary.
