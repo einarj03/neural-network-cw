@@ -184,7 +184,7 @@ class ClaimClassifier():
         self.dataset = X_raw_scaled
         return self.dataset
 
-    def fit(self, X_raw, y_raw = np.array([])):
+    def fit(self, X_raw, y_raw):
         """Classifier training function.
 
         Here you will implement the training function for your classifier.
@@ -202,21 +202,9 @@ class ClaimClassifier():
             an instance of the fitted model
         """
 
-        # If no y_raw dataset specified, model assumes x_raw contains y_labels
-        if (y_raw.size == 0):
-
-            # Seperate out x_raw and y_raw
-            X_raw = X_raw[:,:-1]
-            y_raw = X_raw[:,-1:]
-
-            # Apply preprocessing to dataset first
-            X_clean = self._preprocessor(X_raw)
-            Y_clean = y_raw
-
-        else:
-            # Apply preprocessing to dataset first
-            X_clean = self._preprocessor(X_raw)
-            Y_clean = y_raw
+        # Apply preprocessing to dataset first
+        X_clean = self._preprocessor(X_raw)
+        Y_clean = y_raw
 
         # Combine x and y data together
         X_Y_clean = np.hstack((X_clean, Y_clean))
@@ -319,6 +307,10 @@ class ClaimClassifier():
             POSITIVE class (that had accidents)
         """
 
+        # Convert Pandas Dataframe to Numpy Array
+        if type(X_raw) is not np.ndarray:
+            X_raw = X_raw.to_numpy()
+            
         # Preprocess dataset and convert to Tensor
         X_clean = self._preprocessor(X_raw)
         X_tensor_test = self.xTensor(X_clean)
