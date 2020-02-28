@@ -175,9 +175,14 @@ class LinearLayer(Layer):
         self._W = xavier_init((self.n_in, self.n_out))
         self._b = np.zeros((1, self.n_out))
 
+        # dims (batch_size, n_in)
         self._cache_current = None
-        self._grad_W_current = np.zeros((self.n_in, self.n_out))
-        self._grad_b_current = np.zeros((1, self.n_out))
+
+        # dims (n_in, n_out)
+        self._grad_W_current = None
+
+        # dims (1, n_out)
+        self._grad_b_current = None
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -200,11 +205,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
         self._cache_current = x
-
-        batch_size = x.shape[0]
-        _B = np.ones((batch_size, 1)).dot(self._b)
-
-        return x * self._W + _B
+        return np.dot(x, self._W) + self._b
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -227,8 +228,11 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._grad_W_current = self._cache_current.T * grad_z / m
-        self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True) / self.n_out
+        m = grad_z.shape[0]
+        self._grad_W_current = np.dot(self._cache_current.T, grad_z) / m
+        self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True) / m
+
+        return np.dot(grad_z, self._W.T)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -280,7 +284,7 @@ class MultiLayerNetwork(object):
         if len(neurons) != len(activations):
             raise Exception("Number of neurons must match number of activations")
 
-        self._layers = [LinearLayer(input_dim, neurons[0])]
+        layers = [LinearLayer(input_dim, neurons[0])]
         
         for i, activation in enumerate(activations):
             
@@ -294,10 +298,12 @@ class MultiLayerNetwork(object):
                 raise Exception('Non-supported activation function')
 
             if activation_layer:
-                self._layers.append(activation_layer)
+                layers.append(activation_layer)
 
             if i+1 < len(activations):
-                self._layers.append(LinearLayer(neurons[i], neurons[i+1]))
+                layers.append(LinearLayer(neurons[i], neurons[i+1]))
+
+        self._layers = np.array(layers)
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -316,7 +322,11 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        output = x
+        for layer in self._layers:
+            output = layer(output)
+
+        return output
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -340,7 +350,13 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+
+        grad = grad_z
+        for layer in np.flip(self._layers):
+            grad = layer.backward(grad)
+
+        return grad
+
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -357,7 +373,8 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        pass
+        for layer in self._layers:
+            layer.update_params(learning_rate)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -482,28 +499,33 @@ class Trainer(object):
             # batch has fewer elements)
             if (self.batch_size < 1):
                 raise ValueError('Batch size must be greater than 0')
+
             splits = np.arange(
                 self.batch_size, input_dataset.shape[0], self.batch_size)
+
             input_dataset_split = np.split(input_dataset, splits)
             target_dataset_split = np.split(target_dataset, splits)
             # Iterating through batches
             for index, (input_batch, target_batch) in enumerate(zip(input_dataset_split, target_dataset_split)):
                 # Calculate predictions
-                predictions = self.network.forward(input_batch)
+                predictions = self.network(input_batch)
                 # Evaluate loss
                 if (self.loss_fun == "mse"):
                     loss_function = MSELossLayer()
-                    loss = loss_function.forward(predictions, target_batch)
                 elif (self.loss_fun == "cross_entropy"):
                     loss_function = CrossEntropyLossLayer()
-                    loss = loss_function.forward(predictions, target_batch)
+                else:
+                    raise Exception('Non-supported loss function')
+                
+                loss = loss_function.forward(predictions, target_batch)
                 # Backpropagate loss
                 self.network.backward(loss_function.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
-                # Print loss
-                print("[" + str(epoch + 1) + ", " +
-                      str(index + 1) + "] loss : " + str(loss))
+
+            # Print loss
+            print("[" + str(epoch + 1) + ", " +
+                    str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -530,11 +552,10 @@ class Trainer(object):
         # Evaluate loss
         if (self.loss_fun == "mse"):
             loss_function = MSELossLayer()
-            return loss_function.forward(predictions, target_dataset)
         elif (self.loss_fun == "cross_entropy"):
             loss_function = CrossEntropyLossLayer()
-            return loss_function.forward(predictions, target_dataset)
 
+        return loss_function.forward(predictions, target_dataset)
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -704,7 +725,7 @@ def example_main():
         batch_size=8,
         nb_epoch=1000,
         learning_rate=0.01,
-        loss_fun="cross_entropy",
+        loss_fun="cross_entroy",
         shuffle_flag=True,
     )
 
