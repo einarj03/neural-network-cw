@@ -524,7 +524,7 @@ class Trainer(object):
                 self.network.update_params(self.learning_rate)
                 # Print loss
                 print("[" + str(epoch + 1) + ", " +
-                        str(index + 1) + "] loss : " + str(loss))
+                    str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
