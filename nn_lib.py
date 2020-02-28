@@ -249,8 +249,8 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._W -= learning_rate * self._grad_W_current
-        self._b -= learning_rate * self._grad_b_current
+        self._W -= self._grad_W_current * learning_rate
+        self._b -= self._grad_b_current * learning_rate
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -522,10 +522,9 @@ class Trainer(object):
                 self.network.backward(loss_function.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
-
-            # Print loss
-            print("[" + str(epoch + 1) + ", " +
-                    str(index + 1) + "] loss : " + str(loss))
+                # Print loss
+                print("[" + str(epoch + 1) + ", " +
+                        str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -725,7 +724,7 @@ def example_main():
         batch_size=8,
         nb_epoch=1000,
         learning_rate=0.01,
-        loss_fun="cross_entroy",
+        loss_fun="cross_entropy",
         shuffle_flag=True,
     )
 
