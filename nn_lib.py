@@ -145,7 +145,6 @@ class ReluLayer(Layer):
         #######################################################################
 
         grad_z[self._cache_current <= 0] = 0
-        grad_z[self._cache_current > 0] = 1
         return grad_z
 
         #######################################################################
@@ -282,12 +281,13 @@ class MultiLayerNetwork(object):
         #######################################################################
         # raise errors for incorrect arguments
         if len(neurons) != len(activations):
-            raise Exception("Number of neurons must match number of activations")
+            raise Exception(
+                "Number of neurons must match number of activations")
 
         layers = [LinearLayer(input_dim, neurons[0])]
-        
+
         for i, activation in enumerate(activations):
-            
+
             if activation is "relu":
                 activation_layer = ReluLayer()
             elif activation is "sigmoid":
@@ -356,7 +356,6 @@ class MultiLayerNetwork(object):
             grad = layer.backward(grad)
 
         return grad
-
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -516,7 +515,7 @@ class Trainer(object):
                     loss_function = CrossEntropyLossLayer()
                 else:
                     raise Exception('Non-supported loss function')
-                
+
                 loss = loss_function.forward(predictions, target_batch)
                 # Backpropagate loss
                 self.network.backward(loss_function.backward())
@@ -524,7 +523,7 @@ class Trainer(object):
                 self.network.update_params(self.learning_rate)
                 # Print loss
                 print("[" + str(epoch + 1) + ", " +
-                    str(index + 1) + "] loss : " + str(loss))
+                      str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -698,7 +697,7 @@ def example_main():
     # ORIGINAL TEST FUNCTION (provided)
     input_dim = 4
     neurons = [16, 3]
-    activations = ["relu", "identity"]
+    activations = ["relu", "relu"]
     net = MultiLayerNetwork(input_dim, neurons, activations)
 
     dat = np.loadtxt("iris.dat")
@@ -721,9 +720,9 @@ def example_main():
 
     trainer = Trainer(
         network=net,
-        batch_size=8,
-        nb_epoch=1000,
+        batch_size=2,
         learning_rate=0.01,
+        nb_epoch=2000,
         loss_fun="cross_entropy",
         shuffle_flag=True,
     )
