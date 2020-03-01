@@ -498,7 +498,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        '''
+
         assert len(input_dataset) == len(target_dataset)
 
         for epoch in range(self.nb_epoch):
@@ -508,11 +508,8 @@ class Trainer(object):
                     self.shuffle(input_dataset, target_dataset)
             # Splitting (if it can't be split in evenly sized batches, the last
             # batch has fewer elements)
-            splits1 = np.arange(
+            splits = np.arange(
                 self.batch_size, input_dataset.shape[0], self.batch_size)
-            batch_count = np.floor(
-                len(input_dataset) / self.batch_size).astype(int)
-            splits = [self.batch_size * num for num in range(1, batch_count)]
 
             input_dataset_split = np.split(input_dataset, splits)
             target_dataset_split = np.split(target_dataset, splits)
@@ -526,26 +523,7 @@ class Trainer(object):
                 self.network.backward(self._loss_layer.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
-        '''
-        for epoch in range(self.nb_epoch):
-            if self.shuffle_flag:
-                input_dataset, target_dataset = self.shuffle(
-                    input_dataset, target_dataset)
 
-            num_batches = np.floor(
-                len(input_dataset) / self.batch_size).astype(int)
-            split_indices = [self.batch_size *
-                             num for num in range(1, num_batches)]
-            x_batch = np.split(input_dataset, split_indices)
-            y_batch = np.split(target_dataset, split_indices)
-
-            for batch_iter in range(num_batches):
-                y_target = y_batch[batch_iter]
-                y_pred = self.network.forward(x_batch[batch_iter])
-                loss = self._loss_layer.forward(y_pred, y_target)
-                grad_z = self._loss_layer.backward()  # is this correct?
-                self.network.backward(grad_z)
-                self.network.update_params(self.learning_rate)
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
