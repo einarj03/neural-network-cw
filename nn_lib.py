@@ -575,8 +575,8 @@ class Preprocessor(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        self.original_interval = np.array([np.amin(data), np.amax(data)])
-        self.norm_interval = np.array([0, 1])
+        self.min = np.min(data, axis=0)
+        self.max = np.max(data, axis=0)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -595,12 +595,8 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self.copy_original = data.copy()
 
-        return self.norm_interval[0] + \
-            (data - self.original_interval[0]) * \
-            (self.norm_interval[1] - self.norm_interval[0]) / \
-            (self.original_interval[1] - self.original_interval[0])
+        return (data - self.min) / (self.max - self.min)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -619,8 +615,8 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        return self.copy_original
-        # return self.original_interval[0] + (data - self.norm_interval[0]) * (self.original_interval[1] - self.original_interval[0]) / (self.norm_interval[1] - self.norm_interval[0])
+
+        return data * (self.max - self.min) + self.min
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -654,8 +650,8 @@ def example_main():
             if (org_data[row][col] != reverted_dataset[row][col]):
                 print(str(org_data[row][col]) + " != " +
                       str(reverted_dataset[row][col]))
-
-
+    '''
+    '''
     # TESTING ACTIVATION FUNCTIONS
 
     # Sigmoid
