@@ -433,21 +433,17 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        '''
+
         if self.loss_fun == "mse":
             self._loss_layer = MSELossLayer()
         elif self.loss_fun == "cross_entropy":
             self._loss_layer = CrossEntropyLossLayer()
-        # else:
-        #    raise Exception('Non-supported loss function')
+        else:
+            raise Exception('Non-supported loss function')
 
-        # if (self.batch_size < 1):
-        #        raise ValueError('Batch size must be at least 1')
-        '''
-        if (self.loss_fun == "mse"):
-            self._loss_layer = MSELossLayer()
-        elif (self.loss_fun == "cross_entropy"):
-            self._loss_layer = CrossEntropyLossLayer()
+        if (self.batch_size < 1):
+            raise ValueError('Batch size must be at least 1')
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
