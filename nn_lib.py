@@ -433,7 +433,13 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        self._loss_layer = None
+        if self.loss_fun == "mse":
+            self._loss_layer = MSELossLayer()
+        elif self.loss_fun == "cross_entropy":
+            self._loss_layer = CrossEntropyLossLayer()
+        else:
+            raise Exception('Non-supported loss function')
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -454,12 +460,10 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-
+        assert len(input_dataset) == len(target_dataset)
         indices = np.arange(input_dataset.shape[0])
         np.random.shuffle(indices)
-        input_dataset = input_dataset[indices]
-        target_dataset = target_dataset[indices]
-        return input_dataset, target_dataset
+        return input_dataset[indices], target_dataset[indices]
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -488,6 +492,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        assert len(input_dataset) == len(target_dataset)
 
         for epoch in range(self.nb_epoch):
             # Shuffling
@@ -509,16 +514,9 @@ class Trainer(object):
                 # Calculate predictions
                 predictions = self.network(input_batch)
                 # Evaluate loss
-                if (self.loss_fun == "mse"):
-                    loss_function = MSELossLayer()
-                elif (self.loss_fun == "cross_entropy"):
-                    loss_function = CrossEntropyLossLayer()
-                else:
-                    raise Exception('Non-supported loss function')
-
-                loss = loss_function.forward(predictions, target_batch)
+                loss = self._loss_layer.forward(predictions, target_batch)
                 # Backpropagate loss
-                self.network.backward(loss_function.backward())
+                self.network.backward(self._loss_layer.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
 
@@ -539,18 +537,15 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        if (self.loss_fun not in ["mse", "cross_entropy"]):
-            raise ValueError(
-                'Loss function unknown. Please use mse or cross_entropy')
+
+        assert len(input_dataset) == len(target_dataset)
+
         # Calculate predictions
         predictions = self.network.forward(input_dataset)
-        # Evaluate loss
-        if (self.loss_fun == "mse"):
-            loss_function = MSELossLayer()
-        elif (self.loss_fun == "cross_entropy"):
-            loss_function = CrossEntropyLossLayer()
 
-        return loss_function.forward(predictions, target_dataset)
+        # Evaluate loss
+        return self._loss_layer.forward(predictions, target_dataset)
+
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
