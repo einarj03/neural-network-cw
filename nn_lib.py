@@ -461,8 +461,9 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
         assert len(input_dataset) == len(target_dataset)
-        indices = np.arange(input_dataset.shape[0])
-        np.random.shuffle(indices)
+        #indices = np.arange(input_dataset.shape[0])
+        # np.random.shuffle(indices)
+        indices = np.random.permutation(len(target_dataset))
         return input_dataset[indices], target_dataset[indices]
 
         #######################################################################
