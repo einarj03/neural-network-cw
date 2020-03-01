@@ -230,7 +230,7 @@ class LinearLayer(Layer):
         #######################################################################
         m = grad_z.shape[0]
         self._grad_W_current = np.dot(self._cache_current.T, grad_z)
-        self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True) / m
+        self._grad_b_current = np.mean(grad_z, axis=0, keepdims=True)
 
         return np.dot(grad_z, self._W.T)
 
