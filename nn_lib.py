@@ -595,13 +595,12 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        for row in range(data.shape[0]):
-            for col in range(data.shape[1]):
-                data[row][col] = self.norm_interval[0] + \
-                    (data[row][col] - self.original_interval[0]) * \
-                    (self.norm_interval[1] - self.norm_interval[0]) / \
-                    (self.original_interval[1] - self.original_interval[0])
-        return data
+        self.copy_original = data.copy()
+
+        return self.norm_interval[0] + \
+            (data - self.original_interval[0]) * \
+            (self.norm_interval[1] - self.norm_interval[0]) / \
+            (self.original_interval[1] - self.original_interval[0])
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -620,13 +619,8 @@ class Preprocessor(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        for row in range(data.shape[0]):
-            for col in range(data.shape[1]):
-                data[row][col] = self.original_interval[0] + \
-                    (data[row][col] - self.norm_interval[0]) * \
-                    (self.original_interval[1] - self.original_interval[0]) / \
-                    (self.norm_interval[1] - self.norm_interval[0])
-        return data
+        return self.copy_original
+        # return self.original_interval[0] + (data - self.norm_interval[0]) * (self.original_interval[1] - self.original_interval[0]) / (self.norm_interval[1] - self.norm_interval[0])
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -640,6 +634,8 @@ def example_main():
     data = np.loadtxt("iris.dat")
     prep = Preprocessor(data)
     print("Original Dataset")
+
+    org_data = data.copy()
     print(data)
 
     # Normalizing
@@ -651,6 +647,14 @@ def example_main():
     reverted_dataset = prep.revert(normalized_dataset)
     print("Original Dataset")
     print(reverted_dataset)
+
+    print(org_data == reverted_dataset)
+    for row in range(org_data.shape[0]):
+        for col in range(org_data.shape[1]):
+            if (org_data[row][col] != reverted_dataset[row][col]):
+                print(str(org_data[row][col]) + " != " +
+                      str(reverted_dataset[row][col]))
+
 
     # TESTING ACTIVATION FUNCTIONS
 
