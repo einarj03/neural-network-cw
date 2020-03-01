@@ -563,22 +563,14 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-        '''
-        #assert len(input_dataset) == len(target_dataset)
+
+        assert len(input_dataset) == len(target_dataset)
 
         # Calculate predictions
-        #predictions = self.network.forward(input_dataset)
+        predictions = self.network.forward(input_dataset)
 
         # Evaluate loss
-        # return self._loss_layer.forward(predictions, target_dataset)
-        '''
-        y_pred = self.network.forward(input_dataset)
-        if (self.loss_fun == "mse"):
-            loss = self._loss_layer.forward(y_pred, target_dataset)
-        elif (self.loss_fun == "cross_entropy"):
-            y_pred = CrossEntropyLossLayer.softmax(y_pred)
-            loss = self._loss_layer.forward(y_pred, target_dataset)
-        return loss
+        return self._loss_layer.forward(predictions, target_dataset)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
