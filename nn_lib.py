@@ -437,8 +437,11 @@ class Trainer(object):
             self._loss_layer = MSELossLayer()
         elif self.loss_fun == "cross_entropy":
             self._loss_layer = CrossEntropyLossLayer()
-        else:
-            raise Exception('Non-supported loss function')
+        # else:
+        #    raise Exception('Non-supported loss function')
+
+        # if (self.batch_size < 1):
+        #        raise ValueError('Batch size must be at least 1')
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -502,9 +505,6 @@ class Trainer(object):
                     self.shuffle(input_dataset, target_dataset)
             # Splitting (if it can't be split in evenly sized batches, the last
             # batch has fewer elements)
-            if (self.batch_size < 1):
-                raise ValueError('Batch size must be greater than 0')
-
             splits = np.arange(
                 self.batch_size, input_dataset.shape[0], self.batch_size)
 
