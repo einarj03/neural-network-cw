@@ -521,9 +521,6 @@ class Trainer(object):
                 self.network.backward(loss_function.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
-                # Print loss
-                print("[" + str(epoch + 1) + ", " +
-                      str(index + 1) + "] loss : " + str(loss))
 
         #######################################################################
         #                       ** END OF YOUR CODE **
