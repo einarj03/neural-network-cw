@@ -505,8 +505,11 @@ class Trainer(object):
                     self.shuffle(input_dataset, target_dataset)
             # Splitting (if it can't be split in evenly sized batches, the last
             # batch has fewer elements)
-            splits = np.arange(
-                self.batch_size, input_dataset.shape[0], self.batch_size)
+            # splits = np.arange(
+            #    self.batch_size, input_dataset.shape[0], self.batch_size)
+            batch_count = np.floor(
+                len(input_dataset) / self.batch_size).astype(int)
+            splits = [self.batch_size * num for num in range(1, batch_count)]
 
             input_dataset_split = np.split(input_dataset, splits)
             target_dataset_split = np.split(target_dataset, splits)
@@ -690,7 +693,7 @@ def example_main():
     # ORIGINAL TEST FUNCTION (provided)
     input_dim = 4
     neurons = [16, 3]
-    activations = ["relu", "relu"]
+    activations = ["relu", "identity"]
     net = MultiLayerNetwork(input_dim, neurons, activations)
 
     dat = np.loadtxt("iris.dat")
@@ -713,9 +716,9 @@ def example_main():
 
     trainer = Trainer(
         network=net,
-        batch_size=2,
+        batch_size=8,
         learning_rate=0.01,
-        nb_epoch=2000,
+        nb_epoch=1000,
         loss_fun="cross_entropy",
         shuffle_flag=True,
     )
