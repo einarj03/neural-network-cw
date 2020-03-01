@@ -203,6 +203,7 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         self._cache_current = x
         return np.dot(x, self._W) + self._b
 
@@ -322,6 +323,9 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        if (self.input_dim == 1 and len(x.shape) == 1):
+            x = np.expand_dims(x, axis=1)
+        
         output = x
         for layer in self._layers:
             output = layer(output)
