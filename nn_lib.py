@@ -433,6 +433,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        '''
         if self.loss_fun == "mse":
             self._loss_layer = MSELossLayer()
         elif self.loss_fun == "cross_entropy":
@@ -442,7 +443,11 @@ class Trainer(object):
 
         # if (self.batch_size < 1):
         #        raise ValueError('Batch size must be at least 1')
-
+        '''
+        if (self.loss_fun == "mse"):
+            self._loss_layer = MSELossLayer()
+        elif (self.loss_fun == "cross_entropy"):
+            self._loss_layer = CrossEntropyLossLayer()
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -463,12 +468,16 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        '''
         assert len(input_dataset) == len(target_dataset)
         #indices = np.arange(input_dataset.shape[0])
         # np.random.shuffle(indices)
         indices = np.random.permutation(len(target_dataset))
         return input_dataset[indices], target_dataset[indices]
-
+        '''
+        assert len(input_dataset) == len(target_dataset)
+        perms = np.random.permutation(len(target_dataset))
+        return input_dataset[perms], target_dataset[perms]
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -496,6 +505,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        '''
         assert len(input_dataset) == len(target_dataset)
 
         for epoch in range(self.nb_epoch):
@@ -505,8 +515,8 @@ class Trainer(object):
                     self.shuffle(input_dataset, target_dataset)
             # Splitting (if it can't be split in evenly sized batches, the last
             # batch has fewer elements)
-            # splits = np.arange(
-            #    self.batch_size, input_dataset.shape[0], self.batch_size)
+            splits1 = np.arange(
+                self.batch_size, input_dataset.shape[0], self.batch_size)
             batch_count = np.floor(
                 len(input_dataset) / self.batch_size).astype(int)
             splits = [self.batch_size * num for num in range(1, batch_count)]
@@ -523,7 +533,26 @@ class Trainer(object):
                 self.network.backward(self._loss_layer.backward())
                 # Update weights
                 self.network.update_params(self.learning_rate)
+        '''
+        for epoch in range(self.nb_epoch):
+            if self.shuffle_flag:
+                input_dataset, target_dataset = self.shuffle(
+                    input_dataset, target_dataset)
 
+            num_batches = np.floor(
+                len(input_dataset) / self.batch_size).astype(int)
+            split_indices = [self.batch_size *
+                             num for num in range(1, num_batches)]
+            x_batch = np.split(input_dataset, split_indices)
+            y_batch = np.split(target_dataset, split_indices)
+
+            for batch_iter in range(num_batches):
+                y_target = y_batch[batch_iter]
+                y_pred = self.network.forward(x_batch[batch_iter])
+                loss = self._loss_layer.forward(y_pred, y_target)
+                grad_z = self._loss_layer.backward()  # is this correct?
+                self.network.backward(grad_z)
+                self.network.update_params(self.learning_rate)
         #######################################################################
         #                       ** END OF YOUR CODE **
         #######################################################################
@@ -541,7 +570,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
-
+        '''
         #assert len(input_dataset) == len(target_dataset)
 
         # Calculate predictions
@@ -549,7 +578,7 @@ class Trainer(object):
 
         # Evaluate loss
         # return self._loss_layer.forward(predictions, target_dataset)
-
+        '''
         y_pred = self.network.forward(input_dataset)
         if (self.loss_fun == "mse"):
             loss = self._loss_layer.forward(y_pred, target_dataset)
