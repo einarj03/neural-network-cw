@@ -229,7 +229,7 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
         m = grad_z.shape[0]
-        self._grad_W_current = np.dot(self._cache_current.T, grad_z) / m
+        self._grad_W_current = np.dot(self._cache_current.T, grad_z)
         self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True) / m
 
         return np.dot(grad_z, self._W.T)
@@ -549,7 +549,7 @@ class Trainer(object):
         assert len(input_dataset) == len(target_dataset)
 
         # Calculate predictions
-        predictions = self.network.forward(input_dataset)
+        predictions = self.network(input_dataset)
 
         # Evaluate loss
         return self._loss_layer.forward(predictions, target_dataset)
