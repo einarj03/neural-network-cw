@@ -241,7 +241,6 @@ class PricingModel():
         # =============================================================
         # REMEMBER TO A SIMILAR LINE TO THE FOLLOWING SOMEWHERE IN THE CODE
         X_clean = self._preprocessor(X_raw)
-        print(X_clean.head)
         X_Y_pandas = pd.concat([X_clean, y_raw], axis=1).reindex(X_clean.index)
         X_Y_clean = X_Y_pandas.to_numpy()
 
