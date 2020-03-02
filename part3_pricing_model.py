@@ -250,8 +250,7 @@ class PricingModel():
         y_preds=np.array(y_preds)
         for batch in y_preds:
             for x in batch.flatten():
-                if x>0.5:
-                    preds.append(float(x))
+                preds.append(float(x))
         preds = np.array(preds)
         return preds
         # return model# return probabilities for the positive class (label 1)
