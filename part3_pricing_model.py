@@ -106,6 +106,39 @@ class PricingModel():
         # =============================================================
         # ADD YOUR BASE CLASSIFIER HERE
 
+    def _balance_dataset(self, X_y_raw):
+        """Function to balance dataset used for training/validation/testing
+
+        This function balances the dataset so it contains an equal number of
+        Class 0 and Class 1 events
+
+        Parameters
+        ----------
+        X_y_raw : ndarray
+            An array, this is the raw data
+
+        Returns
+        -------
+        X_y_balanced: ndarray
+            An array, but balanced for each Class
+        """
+        # Seperate dataset into Class 0 and Class 1 events
+        class_0 = X_y_raw[X_y_raw[:,-1] == 0]
+        class_1 = X_y_raw[X_y_raw[:,-1] == 1]
+
+        # Shuffle Class_0 events
+        np.random.shuffle(class_0)
+
+        # Take Subset of Class_0 events of equal size to Class 1 events
+        class_1_size = class_1.shape[0]
+        class_0_subset = class_0[:class_1_size,]
+        X_y_balanced = np.vstack((class_0_subset,class_1))
+
+        # Shuffle combined balanced dataset before returning
+        np.random.shuffle(X_y_balanced)
+
+        return X_y_balanced
+
 
     # YOU ARE ALLOWED TO ADD MORE ARGUMENTS AS NECESSARY TO THE _preprocessor METHOD
     def _preprocessor(self, X_raw):
@@ -155,25 +188,25 @@ class PricingModel():
         # return X_clean
 
         X_raw = X_raw[['vh_age', 'vh_din', 'vh_sale_begin', 'vh_sale_end', 'vh_speed', 'vh_weight', 'pol_coverage', 'vh_fuel']]
-        
+
         X_new = X_raw
 
         # 2. One-Hot Encoding 'object' typed categories
         for title in X_raw:
 
             if X_raw.dtypes[title] != 'float64' and X_raw.dtypes[title] != 'int64':
-                
+
                 X_raw[title].fillna("U")
 
                 if title not in self.label_binarizer.keys():
                     self.label_binarizer[title] = LabelBinarizer()
                 if self.trained == False:
                     X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].fit_transform(X_new[title]),
-                          columns=self.label_binarizer[title].classes_, 
+                          columns=self.label_binarizer[title].classes_,
                           index=X_new.index))
                 else:
                     X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].transform(X_new[title]),
-                          columns=self.label_binarizer[title].classes_, 
+                          columns=self.label_binarizer[title].classes_,
                           index=X_new.index))
 
                 X_new = X_new.drop(columns=title)
@@ -208,6 +241,17 @@ class PricingModel():
         # =============================================================
         # REMEMBER TO A SIMILAR LINE TO THE FOLLOWING SOMEWHERE IN THE CODE
         X_clean = self._preprocessor(X_raw)
+        print(X_clean.head)
+        X_Y_pandas = pd.concat([X_clean, y_raw], axis=1).reindex(X_clean.index)
+        X_Y_clean = X_Y_pandas.to_numpy()
+
+        X_Y_clean_balanced = self._balance_dataset(X_Y_clean)
+
+        X_clean_balanced = pd.DataFrame(X_Y_clean_balanced[:,:-1])
+        y_clean_balanced = pd.DataFrame(X_Y_clean_balanced[:,-1:])
+
+        X_clean = X_clean_balanced
+        y_raw = y_clean_balanced
 
         # THE FOLLOWING GETS CALLED IF YOU WISH TO CALIBRATE YOUR PROBABILITES
         if self.calibrate:
@@ -215,7 +259,7 @@ class PricingModel():
                 self.base_classifier, X_clean, y_raw)
         else:
             self.base_classifier = self.base_classifier.fit(X_clean, y_raw)
-        
+
         self.trained = True
         return self.base_classifier
 
@@ -271,7 +315,7 @@ class PricingModel():
         # =============================================================
         with open('part3_pricing_model.pickle', 'wb') as target:
             pickle.dump(self, target)
-    
+
 
     def evaluate_architecture(self, X_test, Y_test):
         X = self._preprocessor(X_test)
