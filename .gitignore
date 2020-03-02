@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 .idea/
 .vscode/
+report/
+part2.py

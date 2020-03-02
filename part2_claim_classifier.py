@@ -207,7 +207,11 @@ class ClaimClassifier():
 
         # Apply preprocessing to dataset first
         X_clean = self._preprocessor(X_raw)
-        Y_clean = y_raw.to_numpy().reshape(-1, 1)
+
+        if type(y_raw) is not np.ndarray:
+            y_raw = y_raw.to_numpy()
+
+        Y_clean = y_raw.reshape(-1, 1)
 
         # Combine x and y data together
         X_Y_clean = np.hstack((X_clean, Y_clean))
@@ -346,8 +350,11 @@ class ClaimClassifier():
 
         # Preprocess evaluation dataset
         X_clean = self._preprocessor(X_raw)
+        
+        if type(y_raw) is not np.ndarray:
+            y_raw = y_raw.to_numpy()
 
-        y_raw = y_raw.to_numpy().reshape(-1, 1)
+        y_raw = y_raw.reshape(-1, 1)
 
         # Convert evaluation dataset to Numpy
         X_tensor_test = self.xTensor(X_clean)
