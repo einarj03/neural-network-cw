@@ -78,15 +78,13 @@ def fit_and_calibrate_classifier(classifier, X, y):
 class PricingModel():
     # YOU ARE ALLOWED TO ADD MORE ARGUMENTS AS NECESSARY
     # def __init__(self, batchsize=640, no_of_epochs=10, lr=0.0005, input_size=59, layer_sizes=[30, 16], output_size=1, layer_dropouts=[0.01, 0.01], calibrate_probabilities=False):
-    def __init__(self, epoch=100, batchsize=4, learnrate=0.0001, neurons=30, num_features=59, calibrate_probabilities=False):
+    def __init__(self, epoch=100, batchsize=32, learnrate=0.01, neurons=9, num_features=13, calibrate_probabilities=False):
         """
         Feel free to alter this as you wish, adding instance variables as
         necessary.
         """
         self.y_mean = None
         self.calibrate = calibrate_probabilities
-
-        self.lb = {}
         self.trained = False
 
         # =============================================================
@@ -160,22 +158,22 @@ class PricingModel():
         X_new = X_raw
 
         # 2. One-Hot Encoding 'object' typed categories
-
+        label_binarizer = {}
         for title in X_raw:
 
             if X_raw.dtypes[title] != 'float64' and X_raw.dtypes[title] != 'int64':
                 
                 X_raw[title].fillna("U")
 
-                if title not in self.lb.keys():
-                    self.lb[title] = LabelBinarizer()
+                if title not in label_binarizer.keys():
+                    label_binarizer[title] = LabelBinarizer()
                 if self.trained == False:
-                    X_new = X_new.join(pd.DataFrame(self.lb[title].fit_transform(X_new[title]),
-                          columns=self.lb[title].classes_, 
+                    X_new = X_new.join(pd.DataFrame(label_binarizer[title].fit_transform(X_new[title]),
+                          columns=label_binarizer[title].classes_, 
                           index=X_new.index))
                 else:
-                    X_new = X_new.join(pd.DataFrame(self.lb[title].transform(X_new[title]),
-                          columns=self.lb[title].classes_, 
+                    X_new = X_new.join(pd.DataFrame(label_binarizer[title].transform(X_new[title]),
+                          columns=label_binarizer[title].classes_, 
                           index=X_new.index))
 
                 X_new = X_new.drop(columns=title)
