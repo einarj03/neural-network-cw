@@ -31,7 +31,7 @@ class PricingModel():
         Feel free to alter this as you wish, adding instance variables as
         necessary.
         """
-        self.y_mean = None
+        self.y_median = None
         self.calibrate = calibrate_probabilities
         self.trained = False
         self.label_binarizer = {}
@@ -154,7 +154,7 @@ class PricingModel():
 
         """
         nnz = np.where(claims_raw != 0)[0]
-        self.y_mean = np.mean(claims_raw[nnz])
+        self.y_median = np.median(claims_raw[nnz])
 
         X_clean = self._preprocessor(X_raw)
         X_Y_pandas = pd.concat([X_clean, y_raw], axis=1).reindex(X_clean.index)
@@ -217,7 +217,7 @@ class PricingModel():
             POSITIVE class (that had accidents)
         """
 
-        factor = 0.8 # 0.8 has taken account of both the inflation and investment returns expected
+        factor = 0.97 # 0.97 has taken account of both the inflation and investment returns expected
         return self.predict_claim_probability(X_raw) * self.y_median * factor
 
     def save_model(self):
