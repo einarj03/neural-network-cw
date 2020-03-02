@@ -203,6 +203,7 @@ class LinearLayer(Layer):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         self._cache_current = x
         return np.dot(x, self._W) + self._b
 
@@ -228,8 +229,8 @@ class LinearLayer(Layer):
         #                       ** START OF YOUR CODE **
         #######################################################################
         m = grad_z.shape[0]
-        self._grad_W_current = np.dot(self._cache_current.T, grad_z) / m
-        self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True) / m
+        self._grad_W_current = np.dot(self._cache_current.T, grad_z)
+        self._grad_b_current = np.mean(grad_z, axis=0, keepdims=True)
 
         return np.dot(grad_z, self._W.T)
 
@@ -322,6 +323,9 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        if (self.input_dim == 1 and len(x.shape) == 1):
+            x = np.expand_dims(x, axis=1)
+        
         output = x
         for layer in self._layers:
             output = layer(output)
@@ -433,15 +437,16 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         if self.loss_fun == "mse":
             self._loss_layer = MSELossLayer()
         elif self.loss_fun == "cross_entropy":
             self._loss_layer = CrossEntropyLossLayer()
-        # else:
-        #    raise Exception('Non-supported loss function')
+        else:
+            raise Exception('Non-supported loss function')
 
-        # if (self.batch_size < 1):
-        #        raise ValueError('Batch size must be at least 1')
+        if (self.batch_size < 1):
+            raise ValueError('Batch size must be at least 1')
 
         #######################################################################
         #                       ** END OF YOUR CODE **
@@ -463,6 +468,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         assert len(input_dataset) == len(target_dataset)
         #indices = np.arange(input_dataset.shape[0])
         # np.random.shuffle(indices)
@@ -496,6 +502,7 @@ class Trainer(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+
         assert len(input_dataset) == len(target_dataset)
 
         for epoch in range(self.nb_epoch):
@@ -505,11 +512,8 @@ class Trainer(object):
                     self.shuffle(input_dataset, target_dataset)
             # Splitting (if it can't be split in evenly sized batches, the last
             # batch has fewer elements)
-            # splits = np.arange(
-            #    self.batch_size, input_dataset.shape[0], self.batch_size)
-            batch_count = np.floor(
-                len(input_dataset) / self.batch_size).astype(int)
-            splits = [self.batch_size * num for num in range(1, batch_count)]
+            splits = np.arange(
+                self.batch_size, input_dataset.shape[0], self.batch_size)
 
             input_dataset_split = np.split(input_dataset, splits)
             target_dataset_split = np.split(target_dataset, splits)
@@ -542,21 +546,13 @@ class Trainer(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        #assert len(input_dataset) == len(target_dataset)
+        assert len(input_dataset) == len(target_dataset)
 
         # Calculate predictions
-        #predictions = self.network.forward(input_dataset)
+        predictions = self.network(input_dataset)
 
         # Evaluate loss
-        # return self._loss_layer.forward(predictions, target_dataset)
-
-        y_pred = self.network.forward(input_dataset)
-        if (self.loss_fun == "mse"):
-            loss = self._loss_layer.forward(y_pred, target_dataset)
-        elif (self.loss_fun == "cross_entropy"):
-            y_pred = CrossEntropyLossLayer.softmax(y_pred)
-            loss = self._loss_layer.forward(y_pred, target_dataset)
-        return loss
+        return self._loss_layer.forward(predictions, target_dataset)
 
         #######################################################################
         #                       ** END OF YOUR CODE **
