@@ -217,7 +217,7 @@ class PricingModel():
             POSITIVE class (that had accidents)
         """
 
-        factor = 0.97 # 0.97 has taken account of both the inflation and investment returns expected
+        factor = 0.8 # 0.8 has taken account of both the inflation and investment returns expected
         return self.predict_claim_probability(X_raw) * self.y_median * factor
 
     def save_model(self):
