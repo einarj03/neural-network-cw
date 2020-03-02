@@ -25,55 +25,6 @@ def fit_and_calibrate_classifier(classifier, X, y):
         classifier, method='sigmoid', cv='prefit').fit(X_cal, y_cal)
     return calibrated_classifier
 
-# class TableDataset(Dataset):
-    # def __init__(self, data, output_col=None):
-    #     # Characterizes a Dataset for PyTorch
-    #     self.n = data.shape[0]
-    #     self.X = data.astype(np.float64).values
-    #     if output_col:
-    #         self.y = data[output_col].astype(np.float64).values.reshape(-1, 1)
-    #     else:
-    #         self.y = np.zeros((self.n, 1))
-
-    # def __len__(self):
-    #     # Denotes the total number of samples.
-    #     return self.n
-
-    # def __getitem__(self, idx):
-    #     # Generates one sample of data.
-    #     return [self.X[idx], self.y[idx]]
-
-# class Net(nn.Module):
-#     def __init__(self, input_size, layer_sizes, output_size, layer_dropouts):
-#         super().__init__()
-
-#         first_layer = nn.Linear(input_size, layer_sizes[0]) #59, 40
-# #         l1=nn.Linear(input_size, layer_sizes[0])
-# #         a1=nn.ReLU()
-# #         l2=nn.Linear(layer_sizes[0], layer_sizes[1])
-#         self.layers = nn.ModuleList([first_layer] +
-#                 [nn.Linear(layer_sizes[i], layer_sizes[i+1]) for i in range(len(layer_sizes)-1)]) #40, 65
-#         for layer in self.layers:
-#             nn.init.kaiming_normal_(layer.weight.data)
-#         # output layers
-#         self.output_layer = nn.Linear(layer_sizes[-1], output_size)#65, 1
-#         nn.init.kaiming_normal_(self.output_layer.weight.data)
-#         # batch norm layers
-#         self.first_bn_layer = nn.BatchNorm1d(input_size) #32, 59
-#         self.bn_layers = nn.ModuleList([nn.BatchNorm1d(size) for size in layer_sizes]) #32, 40 and 32, 65
-#         # dropout layers
-#         self.dropout_layers = nn.ModuleList([nn.Dropout(size) for size in layer_dropouts])
-
-#     def forward(self, data):
-#         x=self.first_bn_layer(data)
-#         for layer, dropout_layer, bn_layer in zip(self.layers, self.dropout_layers, self.bn_layers):
-#             x = F.relu(layer(x))
-#             x = bn_layer(x)
-#             x = dropout_layer(x)
-#         x = F.sigmoid(self.output_layer(x))
-#         return x
-
-
 # class for part 3
 class PricingModel():
     # YOU ARE ALLOWED TO ADD MORE ARGUMENTS AS NECESSARY
@@ -91,7 +42,6 @@ class PricingModel():
         # =============================================================
         # READ ONLY IF WANTING TO CALIBRATE
         # Place your base classifier here
-        self.base_classifier = ClaimClassifier(epoch, batchsize, learnrate, neurons, num_features)
 
         # NOTE: The base estimator must have:
         #    1. A .fit method that takes two arguments, X, y
@@ -105,6 +55,7 @@ class PricingModel():
         # to implement a predict_proba for it before use
         # =============================================================
         # ADD YOUR BASE CLASSIFIER HERE
+        self.base_classifier = ClaimClassifier(epoch, batchsize, learnrate, neurons, num_features)
 
     def _balance_dataset(self, X_y_raw):
         """Function to balance dataset used for training/validation/testing
@@ -159,62 +110,33 @@ class PricingModel():
         """
         # =============================================================
         # YOUR CODE HERE
+        features_to_keep = ['pol_coverage', 'vh_age', 'vh_din', 'vh_fuel', 'vh_sale_begin', 'vh_sale_end', 'vh_speed', 'vh_weight']
+        X_pre = X_raw[features_to_keep]
 
-        # objects = []
-        # for col in X_raw.columns:
-        #     if X_raw[col].dtype != np.float64 and X_raw[col].dtype != np.int64:
-        #         objects.append(col)
-        # cat_features = []
-        # for obj in objects:
-        #     if X_raw[obj].nunique() < 20:
-        #         cat_features.append(obj)
-        # data_new = pd.concat([X_raw, pd.get_dummies(X_raw[cat_features], prefix=cat_features, dummy_na=True)],
-        #                      axis=1).drop(cat_features, axis=1)
-        # other_objects = []
-        # for obj in objects[1:]:
-        #     if obj not in cat_features:
-        #         other_objects.append(obj)
-        # data_new[other_objects] = data_new[other_objects].astype('|S')
-        # label_encoders = {}
-        # for o in other_objects:
-        #     label_encoders[o] = LabelEncoder()
-        #     data_new[o] = label_encoders[o].fit_transform(data_new[o])
-        # X_clean = data_new.drop(['id_policy'], axis=1)
-        # X_clean.reset_index()
+        for col in features_to_keep:
 
-        # # consider better fillna value (median or mean)
-        # X_clean = X_clean.fillna(0)
+            if X_pre.dtypes[col] != 'float64' and X_pre.dtypes[col] != 'int64':
 
-        # return X_clean
+                X_pre[col].fillna("empty")
 
-        X_raw = X_raw[['vh_age', 'vh_din', 'vh_sale_begin', 'vh_sale_end', 'vh_speed', 'vh_weight', 'pol_coverage', 'vh_fuel']]
+                if col not in self.label_binarizer.keys():
+                    self.label_binarizer[col] = LabelBinarizer()
 
-        X_new = X_raw
-
-        # 2. One-Hot Encoding 'object' typed categories
-        for title in X_raw:
-
-            if X_raw.dtypes[title] != 'float64' and X_raw.dtypes[title] != 'int64':
-
-                X_raw[title].fillna("U")
-
-                if title not in self.label_binarizer.keys():
-                    self.label_binarizer[title] = LabelBinarizer()
                 if self.trained == False:
-                    X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].fit_transform(X_new[title]),
-                          columns=self.label_binarizer[title].classes_,
-                          index=X_new.index))
+                    X_pre = X_pre.join(pd.DataFrame(self.label_binarizer[col].fit_transform(X_pre[col]),
+                                                    columns=self.label_binarizer[col].classes_,
+                                                    index=X_pre.index))
                 else:
-                    X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].transform(X_new[title]),
-                          columns=self.label_binarizer[title].classes_,
-                          index=X_new.index))
+                    X_pre = X_pre.join(pd.DataFrame(self.label_binarizer[col].transform(X_pre[col]),
+                                                    columns=self.label_binarizer[col].classes_,
+                                                    index=X_pre.index))
 
-                X_new = X_new.drop(columns=title)
+                X_pre = X_pre.drop(columns=col)
             else:
-                mean = np.nanmean(X_new[title].values)
-                X_new[title].fillna(mean)
+                mean = np.nanmean(X_pre[col].values)
+                X_pre[col].fillna(mean)
 
-        return X_new
+        return X_pre
 
     def fit(self, X_raw, y_raw, claims_raw):
         """Classifier training function.
