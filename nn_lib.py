@@ -230,7 +230,7 @@ class LinearLayer(Layer):
         #######################################################################
         m = grad_z.shape[0]
         self._grad_W_current = np.dot(self._cache_current.T, grad_z)
-        self._grad_b_current = np.mean(grad_z, axis=0, keepdims=True)
+        self._grad_b_current = np.sum(grad_z, axis=0, keepdims=True)
 
         return np.dot(grad_z, self._W.T)
 
@@ -323,6 +323,7 @@ class MultiLayerNetwork(object):
         #######################################################################
         #                       ** START OF YOUR CODE **
         #######################################################################
+        # in case an vector gets passed in of size (batch_size, )
         if (self.input_dim == 1 and len(x.shape) == 1):
             x = np.expand_dims(x, axis=1)
         
@@ -355,11 +356,10 @@ class MultiLayerNetwork(object):
         #                       ** START OF YOUR CODE **
         #######################################################################
 
-        grad = grad_z
         for layer in np.flip(self._layers):
-            grad = layer.backward(grad)
+            grad_z = layer.backward(grad_z)
 
-        return grad
+        return grad_z
 
         #######################################################################
         #                       ** END OF YOUR CODE **
