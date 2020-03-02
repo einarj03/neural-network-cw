@@ -24,7 +24,7 @@ torch.manual_seed(seed)
 
 class Net(nn.Module):
     
-    def __init__(self, neurons):
+    def __init__(self, neurons, num_features=9):
         super(Net, self).__init__()
 
         ## Define number of Neurons in each Layer
@@ -41,35 +41,38 @@ class Net(nn.Module):
             b = int(a*0.5)
             c = int(b*0.5)
             
-        self.l1 = nn.Linear(9, a)
+        self.l1 = nn.Linear(num_features, a)
+        self.tanh1 = nn.Tanh()
         self.l2 = nn.Linear(a,b)
+        self.tanh2 = nn.Tanh()
         self.l3 = nn.Linear(b,c)
+        self.tanh3 = nn.Tanh()
         self.l4 = nn.Linear(c,1)
-        self.l5 = nn.Sigmoid()
+        self.sig = nn.Sigmoid()
 
     def forward(self, x):
         x = self.l1(x)
-        x = self.act_func(x)
+        x = self.tanh1(x)
         x = self.l2(x)
-        x = self.act_func(x)
+        x = self.tanh2(x)
         x = self.l3(x)
-        x = self.act_func(x)
+        x = self.tanh3(x)
         x = self.l4(x)
-        x = self.l5(x)
+        x = self.sig(x)
         return x
 
 
 #### QUESTION 2.1
 class ClaimClassifier():
 
-    def __init__(self, epoch=100, batchsize=4, learnrate=0.0001, neurons=9):
+    def __init__(self, epoch=100, batchsize=4, learnrate=0.0001, neurons=9, num_features=9):
         """
         Feel free to alter this as you wish, adding instance variables as
         necessary.
         """
 
         # Define NN Hyperparameters based on Class Constructor Parameters
-        self.net = Net(neurons=neurons)
+        self.net = Net(neurons=neurons, num_features=num_features)
         self.EPOCH = epoch
         self.BATCHSIZE = batchsize
         self.LR = learnrate
@@ -204,7 +207,7 @@ class ClaimClassifier():
 
         # Apply preprocessing to dataset first
         X_clean = self._preprocessor(X_raw)
-        Y_clean = y_raw
+        Y_clean = y_raw.to_numpy().reshape(-1, 1)
 
         # Combine x and y data together
         X_Y_clean = np.hstack((X_clean, Y_clean))
@@ -275,6 +278,7 @@ class ClaimClassifier():
             roc_auc = roc_auc_score(target_y,pred_y)
 
             acc_val.append(loss)
+            print(f'[epoch: {epoch + 1:4d}] loss: {loss:1.3f}')
 
         # GRAPH PLOT of training loss and validation accuracy
         plt.plot(losses_train, label="Training Loss (avg. over each Epoch")
