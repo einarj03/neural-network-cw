@@ -325,7 +325,7 @@ class MultiLayerNetwork(object):
         # in case an vector gets passed in of size (batch_size, )
         if (self.input_dim == 1 and len(x.shape) == 1):
             x = np.expand_dims(x, axis=1)
-        
+
         output = x
         for layer in self._layers:
             output = layer(output)
@@ -469,8 +469,6 @@ class Trainer(object):
         #######################################################################
 
         assert len(input_dataset) == len(target_dataset)
-        #indices = np.arange(input_dataset.shape[0])
-        # np.random.shuffle(indices)
         indices = np.random.permutation(len(target_dataset))
         return input_dataset[indices], target_dataset[indices]
 
