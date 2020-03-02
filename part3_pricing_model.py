@@ -86,6 +86,7 @@ class PricingModel():
         self.y_mean = None
         self.calibrate = calibrate_probabilities
         self.trained = False
+        self.label_binarizer = {}
 
         # =============================================================
         # READ ONLY IF WANTING TO CALIBRATE
@@ -158,22 +159,21 @@ class PricingModel():
         X_new = X_raw
 
         # 2. One-Hot Encoding 'object' typed categories
-        label_binarizer = {}
         for title in X_raw:
 
             if X_raw.dtypes[title] != 'float64' and X_raw.dtypes[title] != 'int64':
                 
                 X_raw[title].fillna("U")
 
-                if title not in label_binarizer.keys():
-                    label_binarizer[title] = LabelBinarizer()
+                if title not in self.label_binarizer.keys():
+                    self.label_binarizer[title] = LabelBinarizer()
                 if self.trained == False:
-                    X_new = X_new.join(pd.DataFrame(label_binarizer[title].fit_transform(X_new[title]),
-                          columns=label_binarizer[title].classes_, 
+                    X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].fit_transform(X_new[title]),
+                          columns=self.label_binarizer[title].classes_, 
                           index=X_new.index))
                 else:
-                    X_new = X_new.join(pd.DataFrame(label_binarizer[title].transform(X_new[title]),
-                          columns=label_binarizer[title].classes_, 
+                    X_new = X_new.join(pd.DataFrame(self.label_binarizer[title].transform(X_new[title]),
+                          columns=self.label_binarizer[title].classes_, 
                           index=X_new.index))
 
                 X_new = X_new.drop(columns=title)

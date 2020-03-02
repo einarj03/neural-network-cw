@@ -290,7 +290,7 @@ class ClaimClassifier():
         plt.close()
 
         # Return trained network
-        return self.net
+        return self
 
  
     def predict(self, X_raw):
