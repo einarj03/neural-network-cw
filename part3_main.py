@@ -11,14 +11,14 @@ X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=test
 
 
 num_features = 13
-pricing_model = PricingModel(epoch=100, batchsize=128, learnrate=0.01, neurons=9, num_features=num_features)
+pricing_model = PricingModel(epoch=100, batchsize=64, learnrate=0.0001, neurons=9, num_features=num_features)
 
 X_clean = pricing_model._preprocessor(X_raw)
 
 y_raw[y_raw != 0].shape[0] / y_raw.shape[0]
 
 pricing_model.fit(X_train, y_train, claims_raw)
-
+pricing_model.save_model()
 y_pred = pricing_model.predict_claim_probability(X_test)
 print(y_pred)
 print(y_pred[y_pred > 0.1])
