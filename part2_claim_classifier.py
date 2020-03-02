@@ -349,7 +349,7 @@ class ClaimClassifier():
         
         # Convert evaluation dataset to Numpy
         X_tensor_test = self.xTensor(X_clean)
-        Y_tensor_test = self.yTensor(y_raw)
+        Y_tensor_test = self.yTensor(y_raw.to_numpy().reshape(-1, 1))
 
         # Calculate output using a Cut Value of 0.1
         # -> Values in range [0, 0.1] labelled as Class 0
