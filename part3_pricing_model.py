@@ -25,11 +25,8 @@ def fit_and_calibrate_classifier(classifier, X, y):
         classifier, method='sigmoid', cv='prefit').fit(X_cal, y_cal)
     return calibrated_classifier
 
-# class for part 3
 class PricingModel():
-    # YOU ARE ALLOWED TO ADD MORE ARGUMENTS AS NECESSARY
-    # def __init__(self, batchsize=640, no_of_epochs=10, lr=0.0005, input_size=59, layer_sizes=[30, 16], output_size=1, layer_dropouts=[0.01, 0.01], calibrate_probabilities=False):
-    def __init__(self, epoch=100, batchsize=32, learnrate=0.01, neurons=9, num_features=13, calibrate_probabilities=False):
+    def __init__(self, epoch=100, batchsize=64, learnrate=0.0001, neurons=9, num_features=13, calibrate_probabilities=False):
         """
         Feel free to alter this as you wish, adding instance variables as
         necessary.
@@ -38,6 +35,7 @@ class PricingModel():
         self.calibrate = calibrate_probabilities
         self.trained = False
         self.label_binarizer = {}
+        self.base_classifier = ClaimClassifier(epoch, batchsize, learnrate, neurons, num_features)
 
         # =============================================================
         # READ ONLY IF WANTING TO CALIBRATE
@@ -54,8 +52,7 @@ class PricingModel():
         # If you wish to use the classifier in part 2, you will need
         # to implement a predict_proba for it before use
         # =============================================================
-        # ADD YOUR BASE CLASSIFIER HERE
-        self.base_classifier = ClaimClassifier(epoch, batchsize, learnrate, neurons, num_features)
+
 
     def _balance_dataset(self, X_y_raw):
         """Function to balance dataset used for training/validation/testing
@@ -91,7 +88,6 @@ class PricingModel():
         return X_y_balanced
 
 
-    # YOU ARE ALLOWED TO ADD MORE ARGUMENTS AS NECESSARY TO THE _preprocessor METHOD
     def _preprocessor(self, X_raw):
         """Data preprocessing function.
 
@@ -108,8 +104,7 @@ class PricingModel():
         X: ndarray
             A clean data set that is used for training and prediction.
         """
-        # =============================================================
-        # YOUR CODE HERE
+
         features_to_keep = ['pol_coverage', 'vh_age', 'vh_din', 'vh_fuel', 'vh_sale_begin', 'vh_sale_end', 'vh_speed', 'vh_weight']
         X_pre = X_raw[features_to_keep]
 
@@ -160,8 +155,7 @@ class PricingModel():
         """
         nnz = np.where(claims_raw != 0)[0]
         self.y_mean = np.mean(claims_raw[nnz])
-        # =============================================================
-        # REMEMBER TO A SIMILAR LINE TO THE FOLLOWING SOMEWHERE IN THE CODE
+
         X_clean = self._preprocessor(X_raw)
         X_Y_pandas = pd.concat([X_clean, y_raw], axis=1).reindex(X_clean.index)
         X_Y_clean = X_Y_pandas.to_numpy()
@@ -174,7 +168,6 @@ class PricingModel():
         X_clean = X_clean_balanced
         y_raw = y_clean_balanced
 
-        # THE FOLLOWING GETS CALLED IF YOU WISH TO CALIBRATE YOUR PROBABILITES
         if self.calibrate:
             self.base_classifier = fit_and_calibrate_classifier(
                 self.base_classifier, X_clean, y_raw)
@@ -201,8 +194,6 @@ class PricingModel():
             values corresponding to the probability of beloning to the
             POSITIVE class (that had accidents)
         """
-        # =============================================================
-        # REMEMBER TO A SIMILAR LINE TO THE FOLLOWING SOMEWHERE IN THE CODE
 
         X_clean = self._preprocessor(X_raw)
         return self.base_classifier.predict(X_clean)
@@ -225,10 +216,8 @@ class PricingModel():
             values corresponding to the probability of beloning to the
             POSITIVE class (that had accidents)
         """
-        # =============================================================
-        # REMEMBER TO INCLUDE ANY PRICING STRATEGY HERE.
-        # For example you could scale all your prices down by a factor
-        factor = 0.8 # 0.97 has taken account of both the inflation and investment returns expected
+
+        factor = 0.8 # 0.8 has taken account of both the inflation and investment returns expected
         return self.predict_claim_probability(X_raw) * self.y_median * factor
 
     def save_model(self):
@@ -244,7 +233,6 @@ class PricingModel():
 
 
 def load_model():
-    # Please alter this section so that it works in tandem with the save_model method of your class
     with open('part3_pricing_model.pickle', 'rb') as target:
         trained_model = pickle.load(target)
     return trained_model
