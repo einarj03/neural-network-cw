@@ -10,9 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import roc_auc_score, roc_curve, auc
-from GPyOpt.methods import BayesianOptimization
 import matplotlib.pyplot as plt
-from part3_claim_classifier import *
 
 
 def fit_and_calibrate_classifier(classifier, X, y):
@@ -107,7 +105,6 @@ class PricingModel():
         # If you wish to use the classifier in part 2, you will need
         # to implement a predict_proba for it before use
         # =============================================================
-        self.base_classifier = ClaimClassifier(batchsize=640, no_of_epochs=10, lr=0.0005)
         # ADD YOUR BASE CLASSIFIER HERE
 
 
